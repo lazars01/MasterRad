@@ -1,0 +1,51 @@
+﻿# CMake build proizvodi
+/build/
+/out/
+/bin/
+/lib/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake-build-*/
+/_Deps/
+/install_manifest.txt
+/Testing/
+/CTestTestfile.cmake
+
+# Generisani fajlovi (po želji zadrži compile_commands.json - ovde ga ignorišemo)
+# /compile_commands.json
+
+# Visual Studio / MSBuild
+/.vs/
+/*.sln
+/*.vcxproj
+/*.vcxproj.filters
+/*.vcxproj.user
+/x64/
+/x86/
+/ARM/
+/ARM64/
+/Debug/
+/Release/
+/RelWithDebInfo/
+/MinSizeRel/
+/ipch/
+
+# VSCode (po želji, izbaci ako želiš da deliš podešavanja u repo)
+/.vscode/
+
+# CLion / JetBrains
+/.idea/
+
+# OS specifično
+.DS_Store
+Thumbs.db
+
+# Logovi / privremeni fajlovi
+*.log
+*.obj
+*.o
+*.pch
+*.pdb
+*.ilk
+*.tmp
+*.cache
