@@ -1,35 +1,160 @@
 #include <iostream>
 #include "STBridges.hpp"
 #include "STAP.hpp"
+#include <vector>
+#include <random>
+#include <unordered_set>
+#include <chrono>
+#include <iomanip>
+#include <cstdlib>
+#include <ctime>
 
-void add_edge(int u, int v, std::vector<std::vector<int>>& G) {
-	G[u].push_back(v);
-}
+using namespace std;
+
+vector<vector<int>> generateRandomDirectedGraph(int n, int m);
+void testAvgTimeBAP();
+void testAvgTimeBBridges();
 
 int main() {
+    testAvgTimeBAP();
+    testAvgTimeBBridges();
 
-	int n = 7;
-	std::vector<std::vector<int>> G(n);
+    return 0;
+}
 
-	add_edge(0, 1, G);
-	add_edge(0, 3, G);
-	add_edge(3, 4, G);
-	add_edge(4, 1, G);
-	add_edge(1, 2, G);
-	add_edge(2, 5, G);
-	add_edge(4, 2, G);
+vector<vector<int>> generateRandomDirectedGraph(int n, int m) {
+	vector<vector<int>> graph(n);
+	unordered_set<long long> usedEdges;
 
-	/*std::vector<std::pair<int, int>> st_b = ST::STBridges::st_bridges(G, 0, 5);
+	random_device rd;
+	mt19937 gen(rd());
+	uniform_int_distribution<int> dist(0, n - 1);
 
-	for (const auto& edge : st_b) {
-		std::cout << "(" << edge.first << ", " << edge.second << ")\n";
-	}*/
+	while ((int)usedEdges.size() < m) {
+		int u = dist(gen);
+		int v = dist(gen);
 
-	std::vector<int> A = ST::STAP::st_ap(G, 0, 5);
+		if (u == v)
+			continue;
 
-	for (const auto& vertex : A) {
-		std::cout << vertex << std::endl;
+		long long edgeCode = 1LL * u * n + v;
+
+		if (usedEdges.count(edgeCode))
+			continue;
+
+		usedEdges.insert(edgeCode);
+		graph[u].push_back(v);
 	}
 
-	return 0;
+	return graph;
+}
+
+void testAvgTimeBBridges() {
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
+    std::vector<pair<int, int>> graphSizes = { {10, 60}, {20, 240}, {50, 700}, {75, 1000}, {100, 1500}, {125, 1800}, {150, 2200}, {175, 2500}, {200, 3000} };
+
+    constexpr int numberOfGraphsPerSize = 10;
+
+    std::cout << std::left
+        << std::setw(12) << "Vertices"
+        << std::setw(18) << "Edges"
+        << std::setw(22) << "Avg time (ms)"
+        << '\n';
+
+    std::cout << std::string(74, '-') << '\n';
+
+    for (const auto& size : graphSizes)
+    {
+        double totalTimeMicroseconds = 0.0;
+
+        for (int i = 0; i < numberOfGraphsPerSize; ++i)
+        {
+            auto graph = generateRandomDirectedGraph(size.first, size.second);
+
+            random_device rd;
+            mt19937 gen(rd());
+            uniform_int_distribution<int> dist(0, size.first - 1);
+
+            int s = dist(gen);
+            int t = dist(gen);
+
+            auto start = std::chrono::steady_clock::now();
+
+            ST::STBridges::st_bridges(graph, s, t);
+
+            auto end = std::chrono::steady_clock::now();
+
+            std::chrono::duration<double, std::micro> elapsed = end - start;
+            totalTimeMicroseconds += elapsed.count();
+        }
+
+
+        double averageTimeMicroseconds =
+            totalTimeMicroseconds / numberOfGraphsPerSize;
+
+        double averageTimeMilliseconds =
+            averageTimeMicroseconds / 1000.0;
+
+        std::cout << std::left
+            << std::setw(12) << size.first
+            << std::setw(12) << size.second
+            << std::setw(22) << averageTimeMilliseconds
+            << '\n';
+    }
+}
+
+void testAvgTimeBAP() {
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
+    std::vector<pair<int, int>> graphSizes = { {10, 60}, {20, 240}, {50, 700}, {75, 1000}, {100, 1500}, {125, 1800}, {150, 2200}, {175, 2500}, {200, 3000} };
+
+    constexpr int numberOfGraphsPerSize = 10;
+
+    std::cout << std::left
+        << std::setw(12) << "Vertices"
+        << std::setw(18) << "Edges"
+        << std::setw(22) << "Avg time (ms)"
+        << '\n';
+
+    std::cout << std::string(74, '-') << '\n';
+
+    for (const auto& size : graphSizes)
+    {
+        double totalTimeMicroseconds = 0.0;
+
+        for (int i = 0; i < numberOfGraphsPerSize; ++i)
+        {
+            auto graph = generateRandomDirectedGraph(size.first, size.second);
+
+            random_device rd;
+            mt19937 gen(rd());
+            uniform_int_distribution<int> dist(0, size.first - 1);
+
+            int s = dist(gen);
+            int t = dist(gen);
+
+            auto start = std::chrono::steady_clock::now();
+
+            ST::STAP::st_ap(graph, s, t);
+
+            auto end = std::chrono::steady_clock::now();
+
+            std::chrono::duration<double, std::micro> elapsed = end - start;
+            totalTimeMicroseconds += elapsed.count();
+        }
+
+
+        double averageTimeMicroseconds =
+            totalTimeMicroseconds / numberOfGraphsPerSize;
+
+        double averageTimeMilliseconds =
+            averageTimeMicroseconds / 1000.0;
+
+        std::cout << std::left
+            << std::setw(12) << size.first
+            << std::setw(12) << size.second
+            << std::setw(22) << averageTimeMilliseconds
+            << '\n';
+    }
 }

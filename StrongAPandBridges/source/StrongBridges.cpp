@@ -5,7 +5,9 @@ namespace Strong {
 
 	std::vector<std::pair<int, int>> StrongBridges::strong_bridges(std::vector<std::vector<int>> G, int s) {
 
-		std::vector<std::pair<int, int>> DE_s = LengauerTarjan::LengauerTarjanEdgeDominators::compute(G, s);
+		LengauerTarjan::LengauerTarjanEdgeDominators LTED = LengauerTarjan::LengauerTarjanEdgeDominators(G);
+
+		std::vector<std::pair<int, int>> DE_s = LTED.compute_dominators(s);
 
 		int n = G.size();
 
@@ -17,8 +19,11 @@ namespace Strong {
 			}
 		}
 
-		std::vector<std::pair<int, int>> DEr_s = LengauerTarjan::LengauerTarjanEdgeDominators::compute(Gr, s);
-		
+		LengauerTarjan::LengauerTarjanEdgeDominators LTEDr = LengauerTarjan::LengauerTarjanEdgeDominators(Gr);
+
+
+		std::vector<std::pair<int, int>> DEr_s = LTEDr.compute_dominators(s);
+
 		std::vector<std::vector<int>> isEdgeIncluded(n, std::vector<int>(n, -1));
 		std::vector<std::pair<int, int>> strong_bridges;
 
@@ -43,4 +48,4 @@ namespace Strong {
 
 		return strong_bridges;
 	}
-}
+} 

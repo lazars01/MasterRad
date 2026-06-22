@@ -17,9 +17,10 @@ endfunction()
 # ----- Biblioteka sa algoritmom (iz src/), headeri su u include/
 add_library(strongap_bridges_lib
     source/LengauerTarjanVertexDominators.cpp
-    source/LengauerTarjanEdgeDominators.cpp 
+     
     source/StrongBridges.cpp 
-    source/StrongAP.cpp)
+    source/StrongAP.cpp 
+    "source/LengauerTarjanEdgeDominators.cpp")
 
 # Omogući javni include za potrošače biblioteke (app, testovi, itd.)
 target_include_directories(strongap_bridges_lib

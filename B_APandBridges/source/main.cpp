@@ -1,71 +1,203 @@
 #include <iostream>
-#include <functional>
 #include <vector>
+#include <algorithm>
+#include <random>
+#include <numeric>
+#include <stdexcept>
 #include "BBridges.hpp"
 #include "BAP.hpp"
+#include <chrono>
+#include <iomanip>
+#include <cstdlib>
+#include <ctime>
 
-void add_edge(int u, int v, std::vector<std::vector<int>>& G) {
-	G[u].push_back(v);
-}
+using namespace std;
+
+vector<vector<int>> generateRandomStronglyBiconnectedGraph(int n, double extraEdgeProbability = 0.25);
+int countEdges(const std::vector<std::vector<int>>& graph);
+void testAvgTimeBAP();
+void testAvgTimeBBridges();
+
 
 int main() {
 
-	int n = 6;
-	std::vector<std::vector<int>> G(n);
-	
-	/*add_edge(0, 1, G);
-	add_edge(0, 6, G);
-	add_edge(6, 0, G);
-	add_edge(1, 6, G);
-	add_edge(6, 1, G);
-	add_edge(0, 4, G);
-	add_edge(4, 0, G);
-	add_edge(4, 1, G);
-	add_edge(1, 4, G);
-	add_edge(4, 7, G);
-	add_edge(7, 1, G);
-	add_edge(1, 7, G);
-	add_edge(4, 2, G);
-	add_edge(2, 4, G);
-	add_edge(7, 2, G);
-	add_edge(2, 7, G);
-	add_edge(4, 5, G);
-	add_edge(2, 5, G);
-	add_edge(5, 2, G);
-	add_edge(2, 8, G);
-	add_edge(8, 2, G);
-	add_edge(5, 3, G);
-	add_edge(3, 5, G);
-	add_edge(8, 3, G);
-	add_edge(3, 8, G);
+    testAvgTimeBAP();
+    testAvgTimeBBridges();
 
-	std::vector<std::pair<int, int>> edges = B::BBridges::b_bridges(G);
+    return 0;
+}
 
-	for (const auto& edge : edges) {
-		std::cout << "(" << edge.first << ", " << edge.second << ")\n";
-	}*/
+vector<vector<int>> generateRandomStronglyBiconnectedGraph(
+    int n,
+    double extraEdgeProbability
+) {
+    if (n < 3) {
+        throw invalid_argument("Strongly biconnected graph generator requires n >= 3.");
+    }
 
-	add_edge(0, 2, G);
-	add_edge(0, 3, G);
-	add_edge(3, 0, G);
-	add_edge(2, 3, G);
-	add_edge(3, 2, G);
-	add_edge(3, 5, G);
-	add_edge(5, 0, G);
-	add_edge(0, 5, G);
-	add_edge(5, 2, G);
-	add_edge(5, 1, G);
-	add_edge(1, 5, G);
-	add_edge(1, 4, G);
-	add_edge(4, 1, G);
-	add_edge(4, 2, G);
-	add_edge(2, 4, G);
-	add_edge(1, 2, G);
-	add_edge(4, 5, G);
+    extraEdgeProbability = max(0.0, min(1.0, extraEdgeProbability));
 
-	std::vector<int> b_aps = B::BAP::b_ap(G);
-	for (const auto& vertex : b_aps)
-		std::cout << vertex << "\n";
+    vector<vector<int>> graph(n);
+    vector<vector<bool>> hasEdge(n, vector<bool>(n, false));
 
-	return 0;
+    static random_device rd;
+    static mt19937 rng(rd());
+
+    auto addEdge = [&](int u, int v) {
+        if (u != v && !hasEdge[u][v]) {
+            graph[u].push_back(v);
+            hasEdge[u][v] = true;
+        }
+        };
+
+    vector<int> vertices(n);
+    iota(vertices.begin(), vertices.end(), 0);
+    shuffle(vertices.begin(), vertices.end(), rng);
+
+    for (int i = 0; i < n; i++) {
+        int u = vertices[i];
+        int v = vertices[(i + 1) % n];
+
+        addEdge(u, v);
+    }
+
+    bernoulli_distribution shouldAdd(extraEdgeProbability);
+
+    for (int u = 0; u < n; u++) {
+        for (int v = 0; v < n; v++) {
+            if (u == v || hasEdge[u][v]) {
+                continue;
+            }
+
+            if (shouldAdd(rng)) {
+                addEdge(u, v);
+            }
+        }
+    }
+
+    return graph;
+}
+
+int countEdges(const std::vector<std::vector<int>>& graph) {
+    int edges = 0;
+
+    for (const auto& neighbours : graph) {
+        edges += neighbours.size();
+    }
+
+    return edges;
+}
+
+void testAvgTimeBAP() {
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
+    std::vector<int> graphSizes = { 10, 20, 50, 75, 100, 125, 150, 175, 200 };
+
+    constexpr int numberOfGraphsPerSize = 10;
+    constexpr double extraEdgeProbability = 0.1;
+
+    std::cout << std::left
+        << std::setw(12) << "Vertices"
+        << std::setw(18) << "Avg edges"
+        << std::setw(22) << "Avg time (ms)"
+        << '\n';
+
+    std::cout << std::string(74, '-') << '\n';
+
+    for (int n : graphSizes)
+    {
+        long long totalEdges = 0;
+        double totalTimeMicroseconds = 0.0;
+
+        for (int i = 0; i < numberOfGraphsPerSize; ++i)
+        {
+            auto graph = generateRandomStronglyBiconnectedGraph(
+                n,
+                extraEdgeProbability
+            );
+
+            totalEdges += countEdges(graph);
+
+            auto start = std::chrono::steady_clock::now();
+
+            B::BAP::b_ap(graph);
+
+            auto end = std::chrono::steady_clock::now();
+
+            std::chrono::duration<double, std::micro> elapsed = end - start;
+            totalTimeMicroseconds += elapsed.count();
+        }
+
+        double averageEdges =
+            static_cast<double>(totalEdges) / numberOfGraphsPerSize;
+
+        double averageTimeMicroseconds =
+            totalTimeMicroseconds / numberOfGraphsPerSize;
+
+        double averageTimeMilliseconds =
+            averageTimeMicroseconds / 1000.0;
+
+        std::cout << std::left
+            << std::setw(12) << n
+            << std::setw(18) << averageEdges
+            << std::setw(22) << averageTimeMilliseconds
+            << '\n';
+    }
+}
+
+void testAvgTimeBBridges() {
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
+
+    std::vector<int> graphSizes = { 10, 20, 50, 75, 100, 125, 150, 175, 200 };
+
+    constexpr int numberOfGraphsPerSize = 10;
+    constexpr double extraEdgeProbability = 0.1;
+
+    std::cout << std::left
+        << std::setw(12) << "Vertices"
+        << std::setw(18) << "Avg edges"
+        << std::setw(22) << "Avg time (ms)"
+        << '\n';
+
+    std::cout << std::string(74, '-') << '\n';
+
+    for (int n : graphSizes)
+    {
+        long long totalEdges = 0;
+        double totalTimeMicroseconds = 0.0;
+
+        for (int i = 0; i < numberOfGraphsPerSize; ++i)
+        {
+            auto graph = generateRandomStronglyBiconnectedGraph(
+                n,
+                extraEdgeProbability
+            );
+
+            totalEdges += countEdges(graph);
+
+            auto start = std::chrono::steady_clock::now();
+
+            B::BBridges::b_bridges(graph);
+
+            auto end = std::chrono::steady_clock::now();
+
+            std::chrono::duration<double, std::micro> elapsed = end - start;
+            totalTimeMicroseconds += elapsed.count();
+        }
+
+        double averageEdges =
+            static_cast<double>(totalEdges) / numberOfGraphsPerSize;
+
+        double averageTimeMicroseconds =
+            totalTimeMicroseconds / numberOfGraphsPerSize;
+
+        double averageTimeMilliseconds =
+            averageTimeMicroseconds / 1000.0;
+
+        std::cout << std::left
+            << std::setw(12) << n
+            << std::setw(18) << averageEdges
+            << std::setw(22) << averageTimeMilliseconds
+            << '\n';
+    }
 }

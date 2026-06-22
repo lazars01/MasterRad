@@ -19,7 +19,8 @@ add_library(b_ap_bridges_lib
             source/BiconnectedComponents.cpp 
             source/BBridges.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/../StrongAPandBridges/source/StrongBridges.cpp
-            ${CMAKE_CURRENT_SOURCE_DIR}/../StrongAPandBridges/source/LengauerTarjanEdgeDominators.cpp
+            
+            "../StrongAPandBridges/source/LengauerTarjanEdgeDominators.cpp"
             ${CMAKE_CURRENT_SOURCE_DIR}/../StrongAPandBridges/source/LengauerTarjanVertexDominators.cpp
             source/BAP.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/../StrongAPandBridges/source/StrongAP.cpp)

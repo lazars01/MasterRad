@@ -1,4 +1,6 @@
 #include "LengauerTarjanVertexDominators.hpp"
+#include <chrono>
+#include <iostream>
 
 namespace LengauerTarjan {
 

@@ -1,45 +1,72 @@
 #include "StrongAP.hpp"
 #include "LengauerTarjanVertexDominators.hpp"
+#include <chrono>
+#include <iostream>
 
 namespace Strong {
 
-	bool StrongAP::reachable_all(const std::vector<std::vector<int>>& G, int s, int banned) {
-		if (s == banned)
-			return false;
+	void StrongAP::dfs_skip_vertex(const std::vector<std::vector<int>>& G, int u, int skip, std::vector<bool>& visited) {
+		visited[u] = true;
 
-		std::vector<bool> visited(G.size(), false);
-		visited[banned] = true;
+		for (int next : G[u]) {
+			if (next == skip)
+				continue;
 
-		LengauerTarjan::LengauerTarjanVertexDominators::DFS(G, s, visited);
+			if (!visited[next]) {
+				dfs_skip_vertex(G, next, skip, visited);
+			}
+		}
+	}
 
-		for (int i = 0; i < G.size(); i++) {
-			if (!visited[i])
+	bool StrongAP::is_strong_ap(const std::vector<std::vector<int>>& G, int skip) {
+		int n = G.size();
+
+		if (n <= 2)
+			return true;
+
+		int start = -1;
+
+		for (int i = 0; i < n; i++) {
+			if (i != skip) {
+				start = i;
+				break;
+			}
+		}
+
+		if (start == -1)
+			return true;
+
+		std::vector<bool> visited(n, false);
+
+		dfs_skip_vertex(G, start, skip, visited);
+
+		for (int i = 0; i < n; i++) {
+			if (i != skip && !visited[i]) {
 				return false;
+			}
+		}
+
+		std::vector<std::vector<int>> GR(n);
+		for (int u = 0; u < n; ++u) for (int w : G[u]) GR[w].push_back(u);
+
+		std::fill(visited.begin(), visited.end(), false);
+
+		dfs_skip_vertex(GR, start, skip, visited);
+
+		for (int i = 0; i < n; i++) {
+			if (i != skip && !visited[i]) {
+				return false;
+			}
 		}
 
 		return true;
 	}
 
-	bool StrongAP::is_strong_ap(const std::vector<std::vector<int>>& G, int v) {
-		int n = G.size();
-		if (n <= 2) return false; 
-		int s = (v + 1) % n;
-
-		if (!reachable_all(G, s, v)) return true;
-
-		std::vector<std::vector<int>> GR(n);
-		for (int u = 0; u < n; ++u) for (int w : G[u]) GR[w].push_back(u);
-
-		if (!reachable_all(GR, s, v)) return true;
-
-		return false;
-	}
-
 	std::vector<int> StrongAP::strong_aps(std::vector<std::vector<int>> G, int s) {
 		std::vector<int> strong_aps;
 
-		// if (is_strong_ap(G, s))
-		//	strong_aps.push_back(s);
+		if (is_strong_ap(G, s))
+			strong_aps.push_back(s);
 
 		LengauerTarjan::LengauerTarjanVertexDominators LT = LengauerTarjan::LengauerTarjanVertexDominators(G);
 

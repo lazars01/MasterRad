@@ -8,7 +8,7 @@ namespace Strong {
 	public:
 		static std::vector<int> strong_aps(std::vector<std::vector<int>> G, int s);
 	private:
-		static bool reachable_all(const std::vector<std::vector<int>>& G, int s, int banned);
 		static bool is_strong_ap(const std::vector<std::vector<int>>& G, int v);
+		static void dfs_skip_vertex(const std::vector<std::vector<int>>& G, int u, int skip, std::vector<bool>& visited);
 	};
 }
