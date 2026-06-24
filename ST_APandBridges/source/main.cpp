@@ -12,12 +12,12 @@
 using namespace std;
 
 vector<vector<int>> generateRandomDirectedGraph(int n, int m);
-void testAvgTimeBAP();
-void testAvgTimeBBridges();
+void testAvgTimeSTAP();
+void testAvgTimeSTBridges();
 
 int main() {
-    testAvgTimeBAP();
-    testAvgTimeBBridges();
+    testAvgTimeSTAP();
+    testAvgTimeSTBridges();
 
     return 0;
 }
@@ -49,7 +49,7 @@ vector<vector<int>> generateRandomDirectedGraph(int n, int m) {
 	return graph;
 }
 
-void testAvgTimeBBridges() {
+void testAvgTimeSTBridges() {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
     std::vector<pair<int, int>> graphSizes = { {10, 60}, {20, 240}, {50, 700}, {75, 1000}, {100, 1500}, {125, 1800}, {150, 2200}, {175, 2500}, {200, 3000} };
@@ -104,7 +104,7 @@ void testAvgTimeBBridges() {
     }
 }
 
-void testAvgTimeBAP() {
+void testAvgTimeSTAP() {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
     std::vector<pair<int, int>> graphSizes = { {10, 60}, {20, 240}, {50, 700}, {75, 1000}, {100, 1500}, {125, 1800}, {150, 2200}, {175, 2500}, {200, 3000} };
